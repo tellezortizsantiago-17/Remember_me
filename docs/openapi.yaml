@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: RememberMe API
+  description: API REST para gestion de cuidadores, pacientes, tratamientos, tomas y bienestar.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Servidor local
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: cuidador@correo.com
+        password:
+          type: string
+          example: "123456"
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+    PacienteRequest:
+      type: object
+      required: [nombre, edad]
+      properties:
+        nombre:
+          type: string
+          example: Carlos Gomez
+        edad:
+          type: integer
+          example: 74
+
+    PacienteResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: Carlos Gomez
+        edad:
+          type: integer
+          example: 74
+
+    RegistroTomaRequest:
+      type: object
+      required: [tratamientoId, checklistCompletado]
+      properties:
+        tratamientoId:
+          type: integer
+          example: 5
+        checklistCompletado:
+          type: boolean
+          example: true
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      summary: Iniciar sesion y obtener token JWT
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Credenciales invalidas
+
+  /pacientes:
+    get:
+      summary: Listar pacientes del cuidador autenticado
+      responses:
+        '200':
+          description: Lista de pacientes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PacienteResponse'
+    post:
+      summary: Crear un paciente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PacienteRequest'
+      responses:
+        '201':
+          description: Paciente creado
+
+  /tomas:
+    post:
+      summary: Registrar toma con checklist de seguridad
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegistroTomaRequest'
+      responses:
+        '201':
+          description: Toma registrada
+        '400':
+          description: Checklist incompleto
